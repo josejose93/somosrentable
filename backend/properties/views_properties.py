@@ -1,6 +1,10 @@
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from .models import Property
+
+def build_absolute_uri(request, relative_path):
+    return request.build_absolute_uri(relative_path)
 
 def properties_list(request):
     properties = Property.objects.all().select_related('agent__user').prefetch_related('images')
@@ -23,7 +27,7 @@ def properties_list(request):
                 'name': prop.agent.user.get_full_name() if prop.agent else None,
                 'phone': prop.agent.phone if prop.agent else None,
             },
-            'images': [img.image.url for img in prop.images.all()],
+            'images': [build_absolute_uri(request, img.image.url) for img in prop.images.all()],
             'published_at': prop.published_at.isoformat()
         })
 
@@ -51,7 +55,7 @@ def property_detail(request, slug):
             'name': property.agent.user.get_full_name() if property.agent else None,
             'phone': property.agent.phone if property.agent else None,
         },
-        'images': [img.image.url for img in property.images.all()],
+        'images': [build_absolute_uri(request, img.image.url) for img in property.images.all()],
         'published_at': property.published_at.isoformat()
     }
 
