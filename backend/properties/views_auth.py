@@ -19,7 +19,12 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        return JsonResponse({'message': 'Login successful'})
+        return JsonResponse({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_agent': user.is_agent,  # si tienes ese campo
+            })
     else:
         return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
@@ -31,9 +36,10 @@ def logout_view(request):
     logout(request)
     return JsonResponse({'message': 'Logged out'})
 
-@login_required
 def me_view(request):
     user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
     return JsonResponse({
         'id': user.id,
         'username': user.username,
